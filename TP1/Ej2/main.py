@@ -13,6 +13,6 @@ def timer_int(timer):
     adc_A0_value = adc_A0.read_u16()
     print(adc_A0_value) 
     
-while True:
+if __name__=="__main__":
     timer_lect_A0 = Timer(mode=Timer.PERIODIC, period=1000, callback=timer_int)
     
