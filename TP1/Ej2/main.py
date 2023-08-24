@@ -11,7 +11,8 @@ adc_A0 = ADC(adc_pin)
 
 def timer_int(timer):
     adc_A0_value = adc_A0.read_u16()
-    print(adc_A0_value)
+    print(adc_A0_value) 
     
 while True:
     timer_lect_A0 = Timer(mode=Timer.PERIODIC, period=1000, callback=timer_int)
+    
