@@ -4,7 +4,7 @@
 # Giuliano Palmisano
 
 #import machine
-import sys, uselect
+import sys, uselect, machine, time
 from machine import Pin, ADC, RTC
 
 rtc = RTC()
@@ -19,36 +19,76 @@ adc_A1 = ADC(adc_A1_pin)
 adc_A2_pin = 28 # Corresponde a la entrada A2
 adc_A2 = ADC(adc_A2_pin)
 
-file = open("data/data.txt", "w")
+file = open('data/data.txt','w')
+
+def read_comms():
+    time.sleep_ms(200)
+    print("c")
+    #if sys.stdin in uselect.select([sys.stdin], [], [], 0)[0]:
+    if spoll.poll(0):
+        print("d")
+        return input()
+    else:
+        print("e")
+        return None
+    
+
+def check_comms():
+    data = read_comms() # Compruebo si hay comandos para procesar
+    print("salio")
+    if data != None:
+        if data == "r":
+            global lect
+            lect = True
+            #lectura_ADCs()
+            print("Comenzando lectura...")
+        elif data == "s":
+            global lect
+            lect = False
+            print("Lectura detenida.\nPresione 'r' para registrar los datos.")
+        else:
+            print("Comando inexistente.\nIngrese 'r' para comenzar la lectura o 's' para detenerla.")
+    else:
+        return
 
 def lectura_ADCs():
     adc_A0_value = adc_A0.read_u16()
     #volt = (3.3/65535)*adc_value
-    print("Valor A0" + adc_A0_value)
+    print("Valor A0: " + str(adc_A0_value))
     adc_A1_value = adc_A1.read_u16()
-    print("Valor A1" + adc_A1_value)
+    print("Valor A1: " + str(adc_A1_value))
     adc_A2_value = adc_A2.read_u16()
-    print("Valor A2" + adc_A2_value)
+    print("Valor A2: " + str(adc_A2_value))
     
-    file.write(rtc.datetime() + " A0: " + str(adc_A0_value) + "\n")
-    file.write(rtc.datetime() + " A1: " + str(adc_A1_value) + "\n")
-    file.write(rtc.datetime() + " A2: " + str(adc_A2_value) + "\n")
+    date = rtc.datetime()
+    date_str = str(date[2])+"/"+str(date[1])+"/"+str(date[0])+", "+str(date[4])+":"+str(date[5])+":"+str(date[6])
+    
+    file.write(date_str + " A0: " + str(adc_A0_value) + "\n")
+    file.write(date_str + " A1: " + str(adc_A1_value) + "\n")
+    file.write(date_str + " A2: " + str(adc_A2_value) + "\n")
     
     file.flush()
 
 print("Ingrese 'r' para comenzar la lectura y 's' para detenerla. \n")
 lect = False
 
+# try:
+#     while True:
+#         if lect:
+#             lectura_ADCs()
+# except: KeyboardInterrupt:
+#     check_comms()
+
 while True:
-    if spoll.poll(0):
-        data = sys.stdin.read()
-        if data == "r":
-            lect = True
-            lectura_ADCs()
-        elif data == "s":
-            lect = False
-            print("Lectura detenida.\n Presione 'r' para registrar los datos.")
-        else:
-            print("Comando inexistente.\n Ingrese 'r' para comenzar la lectura o 's' para detenerla.")
-    elif lect:
+    check_comms()
+    print(lect)
+    while lect:
+        print(lect)
         lectura_ADCs()
+        print("a")
+        check_comms()
+        print("b")
+    #check_comms()
+    #print("Salio del if")
+    #time.sleep(1)
+file.close()
