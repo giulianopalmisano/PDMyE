@@ -4,12 +4,13 @@
 # Giuliano Palmisano
 
 #import machine
-from machine import Pin, ADC, RTC, UART
+import sys, uselect
+from machine import Pin, ADC, RTC
 
 rtc = RTC()
 
-uart = UART(1, baudrate=9600, tx=Pin(4), rx=Pin(5))
-uart.init(bits=8, parity=None, stop=2)
+spoll = uselect.poll()
+spoll.register(sys.stdin, uselect.POLLIN)
 
 adc_A0_pin = 26 # Corresponde a la entrada A0
 adc_A0 = ADC(adc_A0_pin)
@@ -22,6 +23,7 @@ file = open("data/data.txt", "w")
 
 def lectura_ADCs():
     adc_A0_value = adc_A0.read_u16()
+    #volt = (3.3/65535)*adc_value
     print("Valor A0" + adc_A0_value)
     adc_A1_value = adc_A1.read_u16()
     print("Valor A1" + adc_A1_value)
@@ -34,9 +36,12 @@ def lectura_ADCs():
     
     file.flush()
 
+print("Ingrese 'r' para comenzar la lectura y 's' para detenerla. \n")
+lect = False
+
 while True:
-    if uart.any():
-        data = uart.read()
+    if spoll.poll(0):
+        data = sys.stdin.read()
         if data == "r":
             lect = True
             lectura_ADCs()
