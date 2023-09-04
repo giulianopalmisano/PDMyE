@@ -3,7 +3,6 @@
 # Ejercicio 3
 # Giuliano Palmisano
 
-#import machine
 import sys, uselect, machine, time
 from machine import Pin, ADC, RTC
 
@@ -20,36 +19,6 @@ adc_A2_pin = 28 # Corresponde a la entrada A2
 adc_A2 = ADC(adc_A2_pin)
 
 file = open('data/data.txt','w')
-
-def read_comms():
-    time.sleep_ms(200)
-    print("c")
-    #if sys.stdin in uselect.select([sys.stdin], [], [], 0)[0]:
-    if spoll.poll(0):
-        print("d")
-        return input()
-    else:
-        print("e")
-        return None
-    
-
-def check_comms():
-    data = read_comms() # Compruebo si hay comandos para procesar
-    print("salio")
-    if data != None:
-        if data == "r":
-            global lect
-            lect = True
-            #lectura_ADCs()
-            print("Comenzando lectura...")
-        elif data == "s":
-            global lect
-            lect = False
-            print("Lectura detenida.\nPresione 'r' para registrar los datos.")
-        else:
-            print("Comando inexistente.\nIngrese 'r' para comenzar la lectura o 's' para detenerla.")
-    else:
-        return
 
 def lectura_ADCs():
     adc_A0_value = adc_A0.read_u16()
@@ -72,23 +41,22 @@ def lectura_ADCs():
 print("Ingrese 'r' para comenzar la lectura y 's' para detenerla. \n")
 lect = False
 
-# try:
-#     while True:
-#         if lect:
-#             lectura_ADCs()
-# except: KeyboardInterrupt:
-#     check_comms()
+def read1():
+    return(sys.stdin.readline(1) if spoll.poll(0) else None)
 
+# main loop
 while True:
-    check_comms()
-    print(lect)
-    while lect:
-        print(lect)
+    data = read1()
+    if data != None:
+        if data == "r":
+            lect = True
+            print("Comenzando lectura...")
+        elif data == "s":
+            lect = False
+            print("Lectura detenida.\nPresione 'r' para registrar los datos.")
+        else:
+            print("Comando inexistente.\nIngrese 'r' para comenzar la lectura o 's' para detenerla.")
+    if lect:
         lectura_ADCs()
-        print("a")
-        check_comms()
-        print("b")
-    #check_comms()
-    #print("Salio del if")
-    #time.sleep(1)
+    time.sleep_ms(200)
 file.close()
