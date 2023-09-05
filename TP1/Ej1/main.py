@@ -3,13 +3,15 @@
 # Ejercicio 1
 # Giuliano Palmisano
 
-#import machine
+### LIBRERIAS ###
 from machine import Timer, Pin
 
-led = Pin(25, mode=Pin.OUT) # Definicion del pin del LED
+# Configuración del pin del LED
+led = Pin(25, mode=Pin.OUT) 
 
+# Función de interrupción del timer
 def timer_int(timer):
     led.value(not led.value()) # Cambio de estado del LED
     
-if __name__=="__main__":
-    timer_led = machine.Timer(mode=Timer.PERIODIC, period=1000, callback=timer_int)
+# Configuración del timer
+timer_led = machine.Timer(mode=Timer.PERIODIC, period=1000, callback=timer_int)
