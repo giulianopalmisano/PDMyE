@@ -11,6 +11,7 @@ Este programa lee e imprime en la consola el valor del conversor A/D cada 5 segu
 import machine
 from machine import Timer, Pin, ADC
 
+### SETUP ###
 # Configuración de ADC
 adc_pin = 26 # Corresponde a la entrada A0
 adc_A0 = ADC(adc_pin)
