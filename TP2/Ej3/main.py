@@ -3,19 +3,38 @@
 # Ejercicio 3
 # Giuliano Palmisano
 
-from machine import UART, Pin
+'''
+Este programa recibe comandos a través del puerto serie
+para manejar el LED autocontenido de la Raspberry Pi Pico W.
+COMANDOS:
+    -'on' para prenderlo.
+    -'off' para apagarlo.
+'''
 
+### LIBRERIAS ###
+from machine import Pin
+import time
+
+### FUNCIONES ###
+# Función para prender o apagar el LED según el comando
+def procesar_com(cmd):
+    if cmd == "on":
+        print("on")
+        Led.on()
+    if cmd == "off":
+        print("off")
+        Led.off()
+    
 ### SETUP ###
-
-uart0 = UART(0, baudrate=9600, tx=Pin(16), rx=Pin(17))
-Led = Pin(25,Pin.OUT)
+Led=Pin("LED",Pin.OUT)
+# Encendido del LED para identificar inciación del programa
+Led.on()
+time.sleep(3)
+Led.off()
 
 ### MAIN LOOP ###
+# Se espera hasta que llegue algún comando
 while True:
-    if uart0.any() != 0:
-        instr = uart0.readline()
-        if instr == "ON":
-            Led.on()
-        elif instr == "OFF":
-            Led.off()
-        
+    cmd=input(">:")
+    procesar_com(cmd)    
+    
