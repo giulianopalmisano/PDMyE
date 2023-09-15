@@ -21,7 +21,8 @@ int but_h = 40;
 int but_y = 480/2-but_h/2;
 int but_w = 120;
 int but_x = 640/2-but_w/2;
-String ans;
+String ans, aux;
+String[] val;
 String[] spans;
 
 /// SETUP ///
@@ -30,7 +31,7 @@ void setup() {
   
   // Abre el puerto serie
   port = new Serial(this, portName, 57600);
-  
+  port.bufferUntil(86); // ASCII de V
   // Configura la ventana
   size(640, 480);
 }
@@ -49,12 +50,12 @@ void draw() {
   text("Actualizar", width/2, height/2);
   
   if (buf){
-    spans=split(ans,"$");
-    ans = spans[0];
+    //spans=split(ans,"$");
+    //ans = spans[0];
     fill(0);
     textSize(20);
     textAlign(CENTER,CENTER);
-    text("Valor A0: " + ans, width/2, height/2+75);
+    text("Valor A0: " + spans[1], width/2, height/2+75);
   }
 }
 
@@ -70,7 +71,18 @@ void mousePressed() {
 void serialEvent(Serial p) { 
   if (ask){
     ans = p.readString();
-    port.clear();
+    print(ans);
+ 
+    //int i0 = ans.indexOf("$");
+    //int i1 = ans.indexOf(" ");
+    //println(str(i0),str(i1));
+    //aux = ans.substring(i0+1,i1);
+    //print(aux);
+    
+    spans = split(ans, "$");
+    print(spans[1]);
+    //val = split(spans[0], "\n\r");
+    //print(val[0]);
     buf = true;
   }
 } 
