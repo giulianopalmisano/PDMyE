@@ -21,6 +21,7 @@ Para detener la lectura de datos: click en el botón "STOP".
 Para descargar los datos adquiridos:
   1. Debe estar pausada la lectura.
   2. Click en el botón "DOWNLOAD".
+Los comandos recibidos comienzan con "$" y terminan con "%".
  */
 
 /// LIBRERIAS ///
@@ -66,9 +67,20 @@ int BUT_DEL_H = CONT_TS_W/15;
 int BUT_DEL_X = CONT_TS_X+CONT_TS_W-BUT_DEL_W-5;
 int BUT_DEL_Y = CONT_TS_Y+CONT_TS_H/4-BUT_DEL_H/2; 
 int CONT_DW_W = WIN_W-4;
-int CONT_DW_H = WIN_H/2-4;
+int CONT_DW_H = WIN_H/2-2;
 int CONT_DW_X = 2;
 int CONT_DW_Y = WIN_H/2;
+int BUT_MOV_W = CONT_DW_H/15;
+int BUT_MOV_H = CONT_DW_H/15;
+int BUT_UP_X = CONT_DW_W-BUT_MOV_W;
+int BUT_UP_Y = CONT_DW_Y;
+int BUT_DN_X = CONT_DW_W-BUT_MOV_W;
+int BUT_DN_Y = CONT_DW_Y+CONT_DW_H-BUT_MOV_H;
+int tSize = 16;
+int cant_lin_pag = CONT_DW_H/(tSize)+1; // Cantidad de líneas que entran en una página
+int pag = 0; // Página actual
+float pagMaxAux;  
+int pagMax = 1;  // Cantidad máxima de páginas 
 
 /// SETUP ///
 void settings(){
@@ -96,12 +108,10 @@ void draw() {
   stroke(255);
   rect(CONT_TS_X, CONT_TS_Y, CONT_TS_W, CONT_TS_H,10);
   fill(255);
-  textSize(16);
+  textSize(tSize);
   textAlign(CENTER, CENTER);
   text("Sampling time [sec] (>30s): " + tsAux, CONT_TS_X+CONT_TS_W/2, CONT_TS_Y+CONT_TS_H/4);
-  //fill(40);
-  //rect(BUT_TS_X, BUT_TS_Y, BUT_W, BUT_H,10);//CONT_TS_W/3, CONT_TS_H/3);
-  //fill(255);
+
   if (settingTs){ // Mientras se ingresa el Ts
     fill(20);
     rect(BUT_TS_X, BUT_TS_Y, BUT_W, BUT_H,10);//CONT_TS_W/3, CONT_TS_H/3);
@@ -132,7 +142,6 @@ void draw() {
   }
 
   // Dibujo boton STOP
-  //fill(confTs ? color(200, 60, 60) : 40);
   fill(40);
   stroke((stop || !confTs) ? 150 : 255);
   rect(BUT_STO_X, BUT_STO_Y, BUT_W, BUT_H, 10);
@@ -140,7 +149,6 @@ void draw() {
   text("STOP", BUT_STO_X+BUT_W/2, BUT_STO_Y+BUT_H/2);
   
   // Dibujo boton START
-  //fill(confTs ? color(80, 200, 80) : 40);
   fill(40);
   stroke((run || !confTs) ? 150 : 255);
   rect(BUT_STA_X, BUT_STA_Y, BUT_W, BUT_H, 10);
@@ -148,7 +156,6 @@ void draw() {
   text("START", BUT_STA_X+BUT_W/2, BUT_STA_Y+BUT_H/2);
   
   // Dibujo boton DOWNLOAD
-  //fill(confTs ? color(80, 80, 200) : 40);
   fill(40);
   stroke((run || !confTs) ? 150 : 255);
   rect(BUT_DW_X, BUT_DW_Y, BUT_W, BUT_H, 10);
@@ -156,22 +163,35 @@ void draw() {
   text("DOWNLOAD", BUT_DW_X+BUT_W/2, BUT_DW_Y+BUT_H/2);
   
   // Dibujo boton SET TIME
-  //fill(confTs ? color(200, 80, 200) : 40);
   fill(40);
   stroke((!confTs || confDate) ? 150 : 255);
   rect(BUT_HS_X, BUT_HS_Y, BUT_W, BUT_H, 10);
   fill((!confTs || confDate) ? 150 : 255);
-  text(confDate ? "SET TIME" : "DONE!", BUT_HS_X+BUT_W/2, BUT_HS_Y+BUT_H/2);
+  text(!confDate ? "SET TIME" : "DONE!", BUT_HS_X+BUT_W/2, BUT_HS_Y+BUT_H/2);
   
   // Área para mostrar archivo via download.
   fill(255);
   rect(CONT_DW_X, CONT_DW_Y, CONT_DW_W, CONT_DW_H);
-  // Si ya se recibieron todas las lineas del archivo
+  fill(150);
+  rect(BUT_UP_X, BUT_UP_Y, BUT_MOV_W, BUT_MOV_H);
+  rect(BUT_DN_X, BUT_DN_Y, BUT_MOV_W, BUT_MOV_H);
+  fill(50);
+  triangle(BUT_UP_X, BUT_UP_Y+BUT_MOV_H, BUT_UP_X+BUT_MOV_W/2, BUT_UP_Y, BUT_UP_X+BUT_MOV_W,  BUT_UP_Y+BUT_MOV_H);
+  triangle(BUT_DN_X, BUT_DN_Y, BUT_DN_X+BUT_MOV_W/2, BUT_DN_Y+BUT_MOV_H, BUT_DN_X+BUT_MOV_W,  BUT_DN_Y);
   fill(0);
   textAlign(LEFT,TOP);
+  // Si ya se recibieron todas las lineas del archivo
   if (finish){
-    for (int i=0; i<lines.size();i++){
-      text(lines.get(i), CONT_DW_X+2,CONT_DW_Y+16*i+2);
+    if (lines.size()<=cant_lin_pag){  // Si todas las lineas no entran en una sola página
+      for (int i=0; i<lines.size();i++){
+        text(lines.get(i), CONT_DW_X+2,CONT_DW_Y+tSize*i+2);
+      }
+    } else {  // Si hay más de una página
+      int ind = 0;  // Índice para escribir el texto en pantalla
+      for (int i=cant_lin_pag*pag; i<min(cant_lin_pag*(pag+1),lines.size());i++){  
+        text(lines.get(i), CONT_DW_X+2,CONT_DW_Y+tSize*ind+2);
+        ind++;
+      }
     }
   }
 }
@@ -179,19 +199,19 @@ void draw() {
 /// FUNCIONES ///
 void mousePressed() {
   // Verifica si se hizo clic en algún botón
-  // START PRESSED
+  // START PRESSED - Envío comando start
   if (mouseX > BUT_STA_X && mouseX< BUT_STA_X + BUT_W && mouseY > BUT_STA_Y && mouseY < BUT_STA_Y + BUT_H) {
     port.write("start\n\r");
   }
-  // STOP PRESSED
+  // STOP PRESSED - Envío comando stop
   if (mouseX > BUT_STO_X && mouseX< BUT_STO_X + BUT_W && mouseY > BUT_STO_Y && mouseY < BUT_STO_Y + BUT_H) {
     port.write("stop\n\r");
   }
-  // DOWNLOAD PRESSED
+  // DOWNLOAD PRESSED - Envío comando download
   if (mouseX > BUT_DW_X && mouseX< BUT_DW_X + BUT_W && mouseY > BUT_DW_Y && mouseY < BUT_DW_Y + BUT_H) {
     port.write("download\n\r");
   }
-  // SET PRESSED
+  // SET PRESSED - Envío Ts o habilito para ingresar Ts según corresponde
   if (mouseX > BUT_TS_X && mouseX< BUT_TS_X + BUT_W && mouseY > BUT_TS_Y && mouseY < BUT_TS_Y + BUT_H) {
     if(settingTs){
       if (int(tsAux)>=30){
@@ -202,17 +222,29 @@ void mousePressed() {
       settingTs = true;
     }
   }
-  // DEL PRESSED
+  // DEL PRESSED - Borra Ts escrito antes de confirmarlo
   if (mouseX > BUT_DEL_X && mouseX< BUT_DEL_X + BUT_DEL_W && mouseY > BUT_DEL_Y && mouseY < BUT_DEL_Y + BUT_DEL_H) {
     if(settingTs){
       tsAux="";
     } 
   }
-  // SET TIME PRESSED
+  // SET TIME PRESSED - Envía fecha para configurar
   if (mouseX > BUT_HS_X && mouseX< BUT_HS_X + BUT_W && mouseY > BUT_HS_Y && mouseY < BUT_HS_Y + BUT_H) {
-    String date = str(year())+" "+str(month())+" "+str(day())+" 3 "+str(hour())+" "+str(minute())+" "+str(second()); // 
+    String date = str(year())+" "+str(month())+" "+str(day())+" 3 "+str(hour())+" "+str(minute())+" "+str(second()); 
     port.write(date + "\n\r");
     println(date);
+  }
+  // UP PRESSED - Mueve a página anterior
+  if (mouseX > BUT_UP_X && mouseX< BUT_UP_X + BUT_MOV_W && mouseY > BUT_UP_Y && mouseY < BUT_UP_Y + BUT_MOV_H) {
+    if (pag>=1){
+      pag -= 1;
+    }
+  }
+  // DOWN PRESSED - Mueve a página siguiente
+  if (mouseX > BUT_DN_X && mouseX< BUT_DN_X + BUT_MOV_W && mouseY > BUT_DN_Y && mouseY < BUT_DN_Y + BUT_MOV_H) {
+    if (pag<pagMax){
+      pag += 1;
+    }
   }
 }
 
@@ -229,8 +261,9 @@ void serialEvent(Serial p) {
   switch (aux){
     case "finish":
       finish = true;
-      downloading = false;   
-      println("1");
+      downloading = false;
+      pagMaxAux = lines.size()/cant_lin_pag;
+      pagMax = ceil(pagMaxAux);  // Cantidad total de páginas
       break;
     case "ok-sta":  // Inicio de lectura
       run = true;
@@ -258,7 +291,7 @@ void serialEvent(Serial p) {
     default:  
       if (downloading){  // Información del datalogger
         lines.append(aux);
-        println(aux);
+        //println(aux);
       }
       break;
   }

@@ -9,6 +9,7 @@ Para iniciar la lectura, se debe ingresar el comando 'start' por la terminal.
 Para detener la lectura, se debe ingresar el comando 'stop' por la terminal.
 Para descargar los datos, se debe ingresar el comando 'download' por la terminal.
 Mientras este activa la lectura, se toman y almacenan mediciones con un intervalo de tiempo configurable.
+Los comandos enviados comienzan con "$" y terminan con "%".
 '''
 
 ### LIBRERIAS ###
@@ -49,7 +50,6 @@ def lectura_ADCs(timer):
     if lect:
         if writing:
             pass
-            #print("Lectura fallida.")
         else:
             # Lectura de los datos
             adc_A0_value = CONV_ADC*adc_A0.read_u16()
@@ -75,38 +75,25 @@ def procesar_com(fcom):
         lect = True
         timer_lect.init(period=T_MUESTREO_MS, mode=Timer.PERIODIC, callback=lectura_ADCs) # Configuración del timer
         print("$ok-sta%")
-        #print("Comenzando lectura...")
     elif fcom == "stop":
         lect = False
         timer_lect.deinit() # Se deshabilita el timer
         print("$ok-sto%")
-        #print("Ingrese 'start' para reiniciarla.")
-        #print("Ingrese 'download' para visualizar las mediciones.")
     elif fcom == "download":
-        #print("Descargando...")
         # Se abre el archivo en modo lectura y se muestra linea por linea
         print("$ok-dw%")
         with open('data/data.txt', 'r') as data_file:
             for line in data_file:
                 print("$"+line.strip()+"%")
-                input()
         print("$finish%")
     else:
         date = tuple(map(int, fcom.split(" "))) + (0,)
         rtc.datetime(date)
         print("$ok-tim%")
-#         print("Comando desconocido.\n")
-#         print("Ingrese 'start' si desea iniciar la lectura.\n")
-#         print("Ingrese 'stop' si desea detener la lectura.\n")
-#         print("Ingrese 'download' si desea descargar el archivo.\n")
 
 # Función para configurar el intervalo de muestreo
 def config():
     t_seg = int(input())
-    # Compruebo que el intervalo sea minimo de 30 segundos
-#     while t_seg < 30:
-#             t_seg = int(input())
-#    print("Intervalo de "+ str(t_seg) +" seg configurado.")
     return t_seg*1000
 
 ### INICIO DEL PROGRAMA ###
@@ -118,8 +105,6 @@ Led.off()
 # Configuración del intervalo de muestreo
 T_MUESTREO_MS = config()
 print("$ok-ts%")
-# print("Ingrese 'start' para inciar la lectura y 'stop' para detenerla.")
-# print("Ingrese 'download' para descargar 'data.txt'")
 
 ### MAIN LOOP ###
 # Se esperan los comandos del usuario
