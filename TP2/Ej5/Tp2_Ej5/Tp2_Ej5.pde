@@ -6,8 +6,8 @@
 /*
 Este programa implementa una interfaz para visualizar el valor del
 conversor AD0 de la Raspberry Pi Pico W  a través del puerto serie.
-COMANDO:
-    -'read' para refrescar el valor.
+Al clickear en el boton "Start", se recibe un valor, y cada 
+5 segundos se recibe otro.
 */
 
 /// LIBRERIAS ///
@@ -17,29 +17,31 @@ import processing.serial.*;
 Serial port;
 int WIN_H = 480;
 int WIN_W = 640;
-boolean ask = false;
-boolean rec = false;
 boolean started = false;
+
 int but_h = 40;
-int but_y = 2*WIN_H/3-but_h/2;
+int but_y = WIN_H/2-but_h/2;
 int but_w = 120;
 int but_x = WIN_W/2-but_w/2;
+
 String ans, aux;
 FloatList points;
 float val;
-String[] spans;
-float[] acum = {0};
-int index = 0;
 String date; 
 
 // Variables para graficos
 PGraphics pg1, pg2;
-int PLOT_W = WIN_W/2-WIN_W/8;
-int PLOT_H = WIN_H/2; 
-float PLOT_X = WIN_W/15;
-float PLOT_Y = WIN_H/15;
-float X_AX = WIN_W/20;
-float Y_AX = PLOT_Y+PLOT_H;
+int PLOT_W = WIN_W-WIN_W/8;
+int PLOT_H = WIN_H/2-WIN_H/8; 
+float PLOT1_X = WIN_W/16;
+float PLOT1_Y = WIN_H/16;
+float X1_AX = WIN_W/20;
+float Y1_AX = PLOT1_Y+PLOT_H;
+float PLOT2_X = WIN_W/16;
+float PLOT2_Y = WIN_H/16+WIN_H/2;
+float X2_AX = WIN_W/20;
+float Y2_AX = PLOT2_Y+PLOT_H;
+
 int N_PUNTOS = 10;
 float PLOT_YMAX = 4;
 float UNIT_Y = PLOT_H/PLOT_YMAX;
@@ -75,14 +77,14 @@ void draw() {
     fill(255);
     textSize(16);
     textAlign(CENTER, CENTER);
-    text("Start", width/2, height/2+75);
+    text("Start", WIN_W/2, WIN_H/2);
   }
 
   else{     
     fill(255);
     textSize(16);
     textAlign(CENTER, CENTER);
-    text("Inicio: "+ date, width/2, height/2+75);
+    text("Inicio: "+ date, WIN_W/2, WIN_H/32);
     
     textSize(10); // Para ejes de los graficos
     fill(150);
@@ -97,18 +99,18 @@ void draw() {
     if (points.size()==1){
       pg1.fill(150);
       pg1.circle(0, points.get(0), 5);
-      text(0, PLOT_X, Y_AX+10);
+      text(0, PLOT1_X, Y1_AX+10);
     }
     if (points.size()>1){
       pg1.fill(150);
       pg1.circle(0, points.get(0), 5);
-      text(0, PLOT_X, Y_AX+10);
+      text(0, PLOT1_X, Y1_AX+10);
       for (int i=1; i<points.size();i++){
         pg1.line((i-1)*UNIT_X, points.get(i-1), i*UNIT_X, points.get(i));
         pg1.fill(150);
         pg1.circle(i*UNIT_X, points.get(i), 5);
         if (i%5==0){
-          text(int(i)*5, PLOT_X+i*UNIT_X, Y_AX+10);
+          text(int(i)*5, PLOT1_X+i*UNIT_X, Y1_AX+10);
         }
       }
     }  
@@ -125,32 +127,32 @@ void draw() {
     for (int i=0; i<points.size();i++){ 
       pg2.rect(i*UNIT_X, PLOT_H, UNIT_X, -PLOT_H+points.get(i));
       if (i%5==0){
-        text(int(i)*5, WIN_W/2+PLOT_X+i*UNIT_X+UNIT_X/2, Y_AX+10);
+        text(int(i)*5, PLOT2_X+i*UNIT_X+UNIT_X/2, Y2_AX+10);
       }
     }
     pg2.endShape();
     pg2.endDraw();
     
-    image(pg1, PLOT_X, PLOT_Y); 
-    image(pg2, WIN_W/2+PLOT_X, PLOT_Y);
+    image(pg1, PLOT1_X, PLOT1_Y); 
+    image(pg2, PLOT2_X, PLOT2_Y);
     
     // Ejes
     stroke(150);
-    line(PLOT_X, PLOT_Y, PLOT_X, PLOT_Y+PLOT_H); // Eje Y plot1
-    line(PLOT_X, PLOT_Y+PLOT_H, PLOT_X+PLOT_W, PLOT_Y+PLOT_H); // Eje X plot1
-    line(WIN_W/2+PLOT_X, PLOT_Y, WIN_W/2+PLOT_X, PLOT_Y+PLOT_H); // Eje Y plot2  
-    line(WIN_W/2+PLOT_X, PLOT_Y+PLOT_H, WIN_W/2+PLOT_X+PLOT_W, PLOT_Y+PLOT_H); // Eje X plot2
+    line(PLOT1_X, PLOT1_Y, PLOT1_X, PLOT1_Y+PLOT_H); // Eje Y plot1
+    line(PLOT1_X, PLOT1_Y+PLOT_H, PLOT1_X+PLOT_W, PLOT1_Y+PLOT_H); // Eje X plot1
+    line(PLOT2_X, PLOT2_Y, PLOT2_X, PLOT2_Y+PLOT_H); // Eje Y plot2  
+    line(PLOT2_X, PLOT2_Y+PLOT_H, PLOT2_X+PLOT_W, PLOT2_Y+PLOT_H); // Eje X plot2
     
     for (int j=0; j<=PLOT_YMAX; j+=1){ 
-      text(j, X_AX, Y_AX-UNIT_Y*j); // Eje Y plot1
-      text(j, WIN_W/2+X_AX, Y_AX-UNIT_Y*j); // Eje Y plot2
+      text(j, X1_AX, Y1_AX-UNIT_Y*j); // Eje Y plot1
+      text(j, X2_AX, Y2_AX-UNIT_Y*j); // Eje Y plot2
     }
-    // CREAR NUEVAS VARIABLES PARA GRAFICO 2
+
     // Etiquetas de los ejes
-    text("V", X_AX, PLOT_Y-10);
-    text("secs", PLOT_X+PLOT_W/2, Y_AX+20);
-    text("V", WIN_W/2+X_AX, PLOT_Y-10);
-    text("secs", WIN_W/2+PLOT_X+PLOT_W/2, Y_AX+20);
+    text("V", X1_AX, PLOT1_Y-10);
+    text("secs", PLOT1_X+PLOT_W/2, Y1_AX+20);
+    text("V", X2_AX, PLOT2_Y-10);
+    text("secs", PLOT2_X+PLOT_W/2, Y2_AX+20);
   }
 }
 
@@ -165,9 +167,7 @@ void mousePressed() {
 }
 
 void serialEvent(Serial p) {
-  if (started){
-    rec = true;
-    
+  if (started){   
     ans = p.readString(); 
     int i0 = ans.indexOf("$");
     int i1 = ans.indexOf("%");
@@ -180,7 +180,6 @@ void serialEvent(Serial p) {
     }
     val = float(aux);
     points.append(PLOT_H-val*UNIT_Y);
-    //index += 1;
-    println(points);
+    //println(points);
   }
 } 
