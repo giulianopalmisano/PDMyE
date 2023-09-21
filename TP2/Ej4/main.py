@@ -30,7 +30,7 @@ Led.off()
 # Función para la lectura y envío del valor del canal A0
 def lectura_ADC():
     adc_A0_value = CONV_ADC*adc_A0.read_u16()
-    print("$"+str(adc_A0_value)+" V")       
+    print("$"+str(adc_A0_value)+" V%")       
 
 # Función para analizar el comando recibido
 def procesar_com(com):

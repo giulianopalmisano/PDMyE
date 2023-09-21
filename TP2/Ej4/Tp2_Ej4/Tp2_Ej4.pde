@@ -6,8 +6,7 @@
 /*
 Este programa implementa una interfaz para visualizar el valor del
 conversor AD0 de la Raspberry Pi Pico W  a través del puerto serie.
-COMANDO:
-    -'read' para refrescar el valor.
+Al clickear en "Actualizar", se refresca el valor.
 */
 
 /// LIBRERIAS ///
@@ -17,13 +16,13 @@ import processing.serial.*;
 Serial port;
 boolean ask = false;
 boolean buf = false;
+
 int but_h = 40;
 int but_y = 480/2-but_h/2;
 int but_w = 120;
 int but_x = 640/2-but_w/2;
+
 String ans, aux;
-String[] val;
-String[] spans;
 
 /// SETUP ///
 void setup() { 
@@ -31,31 +30,30 @@ void setup() {
   
   // Abre el puerto serie
   port = new Serial(this, portName, 57600);
-  port.bufferUntil(86); // ASCII de V
+  port.bufferUntil(37); // ASCII de %
+  
   // Configura la ventana
   size(640, 480);
 }
 
 /// MAIN LOOP ///
 void draw() {
-  background(220);
+  background(40);
   
   // Dibuja el botón
-  fill(color(100,20,100));
+  fill(40);
+  stroke(255);
   rect(but_x, but_y, but_w, but_h, 10);
-  
-  fill(0);
+  // Texto del boton
+  fill(255);
   textSize(16);
   textAlign(CENTER, CENTER);
   text("Actualizar", width/2, height/2);
-  
-  if (buf){
-    //spans=split(ans,"$");
-    //ans = spans[0];
-    fill(0);
+  // Muestro el valor en caso que ya se haya solicitado al menos una vez
+  if (ask){
     textSize(20);
     textAlign(CENTER,CENTER);
-    text("Valor A0: " + spans[1], width/2, height/2+75);
+    text("Valor A0: " + aux, width/2, height/2+75); 
   }
 }
 
@@ -68,21 +66,14 @@ void mousePressed() {
   }  
 }
 
+// Función que se activa cuando llega al buffer el caracter "%" (ver linea 33)
 void serialEvent(Serial p) { 
   if (ask){
-    ans = p.readString();
-    print(ans);
- 
-    //int i0 = ans.indexOf("$");
-    //int i1 = ans.indexOf(" ");
-    //println(str(i0),str(i1));
-    //aux = ans.substring(i0+1,i1);
+    ans = p.readString(); // Leo el string
+    //println(ans);
+    int i0 = ans.indexOf("$");
+    int i1 = ans.indexOf("%");
+    aux = ans.substring(i0+1,i1);  // Lo divido segun los caracteres de inicio y fin
     //print(aux);
-    
-    spans = split(ans, "$");
-    print(spans[1]);
-    //val = split(spans[0], "\n\r");
-    //print(val[0]);
-    buf = true;
   }
 } 
