@@ -6,7 +6,7 @@ Giuliano Palmisano
 */
 
 /* 
-El programa establece un fondo gris sobre el que se desplaza una línea blanca horizontal de 400px de ancho.
+Al clickear en el boton "Cambiar fondo" se alterna entre un fondo negro y uno blanco.
 */
 
 int but_h = 40;
@@ -23,6 +23,7 @@ void setup() {
 
 void draw(){
   background(val);
+  // Creo boton
   fill(color(150,150,150));
   rect(but_x, but_y, but_w, but_h, 10);
   fill(0);
@@ -36,6 +37,7 @@ void draw(){
   }
 }
 
+// Al clickear el boton se alterna el fondo.
 void mouseClicked(){
   if (mouseX > but_x && mouseX< but_x + but_w && mouseY > but_y && mouseY < but_y + but_h){
     if (val==0){

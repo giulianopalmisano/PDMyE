@@ -1,0 +1,39 @@
+from machine import UART,Timer,Pin,ADC
+import time
+
+
+def interrupcion(timer):
+    #Led.toggle()
+    print("int")
+
+def comando(cmd):
+    #print(cmd)
+    #comando_str=str(cmd).split(" ")
+    #print(cmd)
+    if (cmd)=="1":
+        print("on")
+        Led.on()
+    if (cmd)=="0":
+        print("off")
+        Led.off()
+    
+
+#SETUP
+#uart0=UART(0, baudrate=9600, tx=Pin(16), rx=Pin(17))
+ADC1=ADC(26)
+Led=Pin("LED",Pin.OUT)
+
+timer1=Timer(period=10000, mode=Timer.PERIODIC, callback= interrupcion )
+
+Led.on()
+time.sleep(3)
+Led.off()
+
+
+while True:
+    #an0=ADC1.read_u16()
+    #uart0.write('holaaa\n')
+    #print(an0)
+    cmd=input(">:")
+    comando(cmd)
+    #time.sleep(1)
